@@ -12,6 +12,7 @@ public class MultipleFormatMail {
 	private MailMessage asposeMessage;
 	private Message gmailRawMessage;
 	private String nameEmail;
+	private boolean existInDrive;
 	
 	public MimeMessage getMimeMessage() {
 		return mimeMessage;
@@ -42,6 +43,12 @@ public class MultipleFormatMail {
 	}
 	public void setNameEmail(String nameEmail) {
 		this.nameEmail = nameEmail;
+	}
+	public boolean isExistInDrive() {
+		return existInDrive;
+	}
+	public void setExistInDrive(boolean existInDrive) {
+		this.existInDrive = existInDrive;
 	}	
 
 }

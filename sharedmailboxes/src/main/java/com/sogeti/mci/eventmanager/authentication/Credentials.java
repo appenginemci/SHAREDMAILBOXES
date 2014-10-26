@@ -39,7 +39,7 @@ public class Credentials {
       private static GoogleCredentialItem googleCredentialItem = generateGoogleCredentialItem(getScopes());
 	  
 	  public static GoogleCredential getCredential()  {
-		  
+		 
 		  	GoogleCredential credential = null;
 		  	
 		  	try {

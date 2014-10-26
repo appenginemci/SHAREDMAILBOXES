@@ -3,6 +3,7 @@ package com.sogeti.mci.eventmanager.business;
 import java.io.InputStream;
 import java.util.List;
 
+import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
 import com.sogeti.mci.eventmanager.helper.ConstantList;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
@@ -18,22 +19,28 @@ public class MailManagerStream {
 				
 		String userId = ConstantList.USER;
 		
-		List<Thread> listThreads = GmailService.listThreadsMatchingQuery(userId,"in:inbox  is:unread");
+		List<Message> messages = GmailService.listMessagesMatchingQuery(userId, "in:inbox  is:unread -label:"+ConstantList.LABEL);
 		
-		if (listThreads.size() == 0) {
+		if (messages.size() == 0) {
 			System.err.println("No unread message in mailbox");
 		} else {
-			for (int indice=0;indice<listThreads.size();indice++) {
+			for (int indice=0;indice<messages.size();indice++) {
 								
-				Thread t = listThreads.get(indice);
+				Message message = messages.get(indice);
 				
-				MultipleFormatMail multipleFormatMail = MultipleMailFormatService.create(userId, t);
+				MultipleFormatMail multipleFormatMail = MultipleMailFormatService.create(userId, message);
 				
-				multipleFormatMail = MultipleMailFormatService.constructMailWithAttachments(multipleFormatMail, userId);
+				if (!multipleFormatMail.isExistInDrive()) {
+					
+					System.out.println("Converting message ...");
+					System.out.println(multipleFormatMail.getNameEmail());
+				
+					multipleFormatMail = MultipleMailFormatService.constructMailWithAttachments(multipleFormatMail, userId);
 				    
-			    multipleFormatMail = MultipleMailFormatService.constructOutput(multipleFormatMail);
+					multipleFormatMail = MultipleMailFormatService.constructOutput(multipleFormatMail);
 			    
-			    ConversionService.convertToDoc(multipleFormatMail);
+					ConversionService.convertToDoc(multipleFormatMail);
+				}
 			}
 		}
 

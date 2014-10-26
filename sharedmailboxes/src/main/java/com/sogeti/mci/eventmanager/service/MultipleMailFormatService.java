@@ -27,9 +27,9 @@ import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 
 public class MultipleMailFormatService {
 	
-	public static MultipleFormatMail create(String userId, com.google.api.services.gmail.model.Thread thread) throws MessagingException, IOException {
+	public static MultipleFormatMail create(String userId, Message message) throws MessagingException, IOException {
 		
-		Message m = GmailService.getLastMessageFromThread(userId, thread);						
+		Message m = GmailService.getMessageById(userId, message.getId());						
 		
 		Message gmailMessage = GmailService.getMessageById(userId, m.getId());
 		
@@ -41,11 +41,16 @@ public class MultipleMailFormatService {
 	    multipleFormatMail.setAsposeMessage(asposeMessage);
 	    multipleFormatMail.setMimeMessage(mimeMessage);
 	    multipleFormatMail.setGmailMessage(gmailMessage);
-	    multipleFormatMail.setNameEmail(retrieveEmailName(mimeMessage));
 	    
+	    String name = retrieveEmailName(mimeMessage);
+	    multipleFormatMail.setNameEmail(name);
+	    
+	    multipleFormatMail.setExistInDrive(DriveService.existsDocument(name, ConstantList.idFolderMCI));
+	    	    
 	    return multipleFormatMail;	    
 	}
 	
+
 	private static MimeMessage getMimeMessage( String userId, String messageId)
 		      throws IOException, MessagingException {
 	    Message message = GmailService.getRawMessageById(userId, messageId);
@@ -65,37 +70,39 @@ public class MultipleMailFormatService {
 	    MailMessage asposeMessage = multipleFormatMail.getAsposeMessage();
 	    
     	List<MessagePart> parts = gMailMessage.getPayload().getParts();
-	    for (MessagePart part : parts) {
-		      if (part.getMimeType().equals("text/html") && asposeMessage.getHtmlBody().equals("")) {
-		    	  System.out.println("Transferring HTML content from Gmail to Aspose");
-		    	  asposeMessage.setHtmlBody(new String(Base64.decodeBase64(part.getBody().getData()), "UTF-8"));
-		      }
-		      if (part.getFilename() != null && part.getFilename().length() > 0) {
-		        String attId = part.getBody().getAttachmentId();
-		        MessagePartBody attachPart = GmailService.getMessagePartBody(userId, gMailMessage.getId(), attId);
-		        byte[] byteArray = Base64.decodeBase64(attachPart.getData());
-			    if (getHeaderValue(part.getHeaders(),"Content-Disposition").startsWith("attachment")) {
-				        String filename = part.getFilename();
-				        ByteArrayOutputStream os = new ByteArrayOutputStream(); 
-				        try { 
-				        	os.write(byteArray); 
-				        	os.close(); 
-			        	} catch (IOException e) { 
-			        		e.printStackTrace(); 
-			        	}
-				        File pj = DriveService.storeAttachmentToDrive(os, multipleFormatMail.getNameEmail(), filename, "attachment No"+part.getPartId(), part.getMimeType(), part.getMimeType(), "");
-				        asposeMessage.setHtmlBody(asposeMessage.getHtmlBody()+"<br><a href=\""+pj.getAlternateLink()+"\">"+filename+"</a>");					        
-			    } else if ((getHeaderValue(part.getHeaders(),"Content-Disposition").startsWith("inline"))) {
-			    		LinkedResource res = new LinkedResource( new ByteArrayInputStream(byteArray), part.getMimeType());// MediaTypeNames.Image.JPEG				    	
-				    	String cid = getHeaderValue(part.getHeaders(),"X-Attachment-Id");
-				    	if (cid.equals("")) {
-				    		cid = getHeaderValue(part.getHeaders(),"Content-ID");
-				    	}
-			    		res.setContentId(cid);
-				    	asposeMessage.getLinkedResources().addItem(res);
-			    }
-		      }
-		 }
+    	if (parts!=null) {
+		    for (MessagePart part : parts) {
+			      if (part.getMimeType().equals("text/html") && asposeMessage.getHtmlBody().equals("")) {
+			    	  System.out.println("Transferring HTML content from Gmail to Aspose");
+			    	  asposeMessage.setHtmlBody(new String(Base64.decodeBase64(part.getBody().getData()), "UTF-8"));
+			      }
+			      if (part.getFilename() != null && part.getFilename().length() > 0) {
+			        String attId = part.getBody().getAttachmentId();
+			        MessagePartBody attachPart = GmailService.getMessagePartBody(userId, gMailMessage.getId(), attId);
+			        byte[] byteArray = Base64.decodeBase64(attachPart.getData());
+				    if (getHeaderValue(part.getHeaders(),"Content-Disposition").startsWith("attachment")) {
+					        String filename = part.getFilename();
+					        ByteArrayOutputStream os = new ByteArrayOutputStream(); 
+					        try { 
+					        	os.write(byteArray); 
+					        	os.close(); 
+				        	} catch (IOException e) { 
+				        		e.printStackTrace(); 
+				        	}
+					        File pj = DriveService.storeAttachmentToDrive(os, multipleFormatMail.getNameEmail(), filename, "attachment No"+part.getPartId(), part.getMimeType(), part.getMimeType(), "");
+					        asposeMessage.setHtmlBody(asposeMessage.getHtmlBody()+"<br><a href=\""+pj.getAlternateLink()+"\">"+filename+"</a>");					        
+				    } else if ((getHeaderValue(part.getHeaders(),"Content-Disposition").startsWith("inline"))) {
+				    		LinkedResource res = new LinkedResource( new ByteArrayInputStream(byteArray), part.getMimeType());// MediaTypeNames.Image.JPEG				    	
+					    	String cid = getHeaderValue(part.getHeaders(),"X-Attachment-Id");
+					    	if (cid.equals("")) {
+					    		cid = getHeaderValue(part.getHeaders(),"Content-ID");
+					    	}
+				    		res.setContentId(cid);
+					    	asposeMessage.getLinkedResources().addItem(res);
+				    }
+			      }
+			 }
+    	}
 	  multipleFormatMail.setAsposeMessage(asposeMessage);
 	  return multipleFormatMail;
 	}
@@ -154,8 +161,6 @@ public class MultipleMailFormatService {
 		String nameEmail = "no_name";
 		nameEmail = null == ((InternetAddress)mimeMessage.getFrom()[0]).getPersonal() ? ((InternetAddress)mimeMessage.getFrom()[0]).getAddress() : ((InternetAddress)mimeMessage.getFrom()[0]).getPersonal();
 		nameEmail = validateName(nameEmail, mimeMessage);
-		System.out.println("Converting message ...");
-		System.out.println(nameEmail);
 		if (nameEmail.length()>50) {
 			nameEmail = nameEmail.substring(0, 50);
 		}

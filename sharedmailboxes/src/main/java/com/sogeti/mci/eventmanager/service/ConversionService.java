@@ -33,7 +33,7 @@ public class ConversionService {
 	
 	if (finalFile!=null && !finalFile.isEmpty()) {
 		//service.users().messages().trash(userId, gMailMessage.getId()).execute();
-		System.out.println("Message trashed : "+multipleFormatMail.getGmailMessage().getId());
+		//System.out.println("Message trashed : "+multipleFormatMail.getGmailMessage().getId());
 	}
 	}
 	

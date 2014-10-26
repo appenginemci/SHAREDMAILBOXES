@@ -133,4 +133,24 @@ public class DriveService {
 
 		return toReturn;
 	}
+
+	public static boolean existsDocument(String name, String parentId) throws IOException {
+
+		boolean toReturn = true;
+
+		Drive.Files.List request;
+		request = service.files().list();
+
+		String query = "mimeType='application/vnd.google-apps.document' AND trashed=false AND title=\""
+				+ name + "\" AND '" + parentId + "' in parents";
+		request = request.setQ(query);
+		try {
+			FileList list = request.execute();
+			toReturn = list.getItems().size()>0;
+		} catch (Exception e) {
+			toReturn = false;
+		}
+
+		return toReturn;
+	}
 }
