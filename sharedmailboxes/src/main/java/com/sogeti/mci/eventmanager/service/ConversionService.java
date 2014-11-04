@@ -16,30 +16,34 @@ import com.sogeti.mci.eventmanager.helper.ByteArrayInOutStream;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 
 public class ConversionService {
-	
-	
-	public static void convertToDoc(MultipleFormatMail multipleFormatMail) throws Exception {
-    ByteArrayInOutStream outputAsposeMessage = new ByteArrayInOutStream();
-    multipleFormatMail.getAsposeMessage().save(outputAsposeMessage, MailMessageSaveType.getMHtmlFormat());	
-    
-    LoadOptions lo = new LoadOptions();
-    lo.setLoadFormat(LoadFormat.MHTML);
-    Document doc = new Document(outputAsposeMessage.getInputStream(),lo);
-    
-    ByteArrayOutputStream outputDoc = new ByteArrayOutputStream();
-    doc.save(outputDoc, SaveFormat.DOC);
-    
-	File finalFile = write(outputDoc, multipleFormatMail.getNameEmail());	
-	
-	if (finalFile!=null && !finalFile.isEmpty()) {
-		//service.users().messages().trash(userId, gMailMessage.getId()).execute();
-		//System.out.println("Message trashed : "+multipleFormatMail.getGmailMessage().getId());
+
+	public static File convertToDoc(MultipleFormatMail multipleFormatMail) throws Exception {
+	    ByteArrayInOutStream outputAsposeMessage = new ByteArrayInOutStream();
+	    multipleFormatMail.getAsposeMessage().save(outputAsposeMessage, MailMessageSaveType.getMHtmlFormat());	
+	    
+	    LoadOptions lo = new LoadOptions();
+	    lo.setLoadFormat(LoadFormat.MHTML);
+	    Document doc = new Document(outputAsposeMessage.getInputStream(),lo);
+	    
+	    ByteArrayOutputStream outputDoc = new ByteArrayOutputStream();
+	    doc.save(outputDoc, SaveFormat.DOC);
+	    
+		File finalFile = write(outputDoc, multipleFormatMail);	
+		
+		if (finalFile==null || finalFile.isEmpty()) {
+			System.err.println("Failed to create final file : "+multipleFormatMail.getNameEmail());
+		}
+		
+		return finalFile;
 	}
+
+	private static File write(ByteArrayOutputStream baos, MultipleFormatMail multipleFormatMail)
+			throws FileNotFoundException, IOException,
+			GeneralSecurityException, URISyntaxException {
+		return DriveService.storeToDrive(baos, multipleFormatMail,
+				"An email converted to a document",
+				"application/vnd.google-apps.document", "application/msword",
+				"doc");
 	}
-	
-	private static File write(ByteArrayOutputStream baos, String name) throws FileNotFoundException, IOException, GeneralSecurityException, URISyntaxException {
-	    return DriveService.storeToDrive(baos, name, "An email converted to a document","application/vnd.google-apps.document", "application/msword", "doc");
-	}
-	
 
 }

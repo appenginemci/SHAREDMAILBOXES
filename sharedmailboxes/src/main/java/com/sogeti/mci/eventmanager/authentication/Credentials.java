@@ -23,6 +23,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
+import com.sogeti.mci.eventmanager.dao.DomainCredentialsDAO;
 import com.sogeti.mci.eventmanager.model.DomainCredentials;
 
 public class Credentials {

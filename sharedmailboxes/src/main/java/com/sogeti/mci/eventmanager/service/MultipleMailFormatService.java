@@ -46,6 +46,8 @@ public class MultipleMailFormatService {
 	    multipleFormatMail.setNameEmail(name);
 	    
 	    multipleFormatMail.setExistInDrive(DriveService.existsDocument(name, ConstantList.idFolderMCI));
+	    
+	    multipleFormatMail.setEvent(EventService.getEventByRecipient((mimeMessage.getAllRecipients())));
 	    	    
 	    return multipleFormatMail;	    
 	}
@@ -89,7 +91,7 @@ public class MultipleMailFormatService {
 				        	} catch (IOException e) { 
 				        		e.printStackTrace(); 
 				        	}
-					        File pj = DriveService.storeAttachmentToDrive(os, multipleFormatMail.getNameEmail(), filename, "attachment No"+part.getPartId(), part.getMimeType(), part.getMimeType(), "");
+					        File pj = DriveService.storeAttachmentToDrive(os, multipleFormatMail, filename, "attachment No"+part.getPartId(), part.getMimeType(), part.getMimeType(), "");
 					        asposeMessage.setHtmlBody(asposeMessage.getHtmlBody()+"<br><a href=\""+pj.getAlternateLink()+"\">"+filename+"</a>");					        
 				    } else if ((getHeaderValue(part.getHeaders(),"Content-Disposition").startsWith("inline"))) {
 				    		LinkedResource res = new LinkedResource( new ByteArrayInputStream(byteArray), part.getMimeType());// MediaTypeNames.Image.JPEG				    	

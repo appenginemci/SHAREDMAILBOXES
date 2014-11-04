@@ -13,38 +13,39 @@ import com.google.api.services.drive.model.FileList;
 import com.google.api.services.drive.model.ParentReference;
 import com.sogeti.mci.eventmanager.authentication.CredentialLoader;
 import com.sogeti.mci.eventmanager.helper.ConstantList;
+import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 
 public class DriveService {
 
 	static Drive service = CredentialLoader.getDriveService();
 
 	static File storeAttachmentToDrive(ByteArrayOutputStream baos,
-			String folder, String name, String description,
+			MultipleFormatMail multipleFormatEmail, String name, String description,
 			String mimetypeBody, String mimetypeFile, String extension)
 			throws IOException, GeneralSecurityException, URISyntaxException {
 		System.out.println("Storing attachment file " + name + " in folder "
-				+ folder);
+				+ multipleFormatEmail.getNameEmail());
 
-		File mciFolder = getRecipientFolderById(ConstantList.idAttachementFolderMCI);
+		File mciFolder = getRecipientFolderById(multipleFormatEmail.getEvent().getIdFolderAttachment());
 
-		mciFolder = createFolder(folder, mciFolder.getId());
+		mciFolder = createFolder(multipleFormatEmail.getNameEmail(), mciFolder.getId());
 
 		return doInsertion(baos, name, description, mimetypeBody, mimetypeFile,
 				extension, service, mciFolder);
 
 	}
 
-	public static File storeToDrive(ByteArrayOutputStream baos, String name,
+	public static File storeToDrive(ByteArrayOutputStream baos, MultipleFormatMail multipleFormatEmail,
 			String description, String mimetypeBody, String mimetypeFile,
 			String extension) throws IOException, GeneralSecurityException,
 			URISyntaxException {
-		System.out.println("Storing file " + name + " in folder new");
+		System.out.println("Storing file " + multipleFormatEmail.getNameEmail() + " in folder new");
 		Drive service = CredentialLoader.getDriveService();
 		// File mciFolder = createRecipientFolder(service);
 
-		File mciFolder = getRecipientFolderById(ConstantList.idFolderMCI);
+		File mciFolder = getRecipientFolderById(multipleFormatEmail.getEvent().getIdFolderNew());
 
-		return doInsertion(baos, name, description, mimetypeBody, mimetypeFile,
+		return doInsertion(baos, multipleFormatEmail.getNameEmail(), description, mimetypeBody, mimetypeFile,
 				extension, service, mciFolder);
 
 	}

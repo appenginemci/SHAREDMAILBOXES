@@ -6,13 +6,16 @@ import java.util.List;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
+import com.google.api.services.gmail.model.ListLabelsResponse;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePartBody;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
+import com.google.api.services.gmail.model.ModifyThreadRequest;
 import com.google.api.services.gmail.model.Thread;
 import com.sogeti.mci.eventmanager.authentication.CredentialLoader;
+import com.sogeti.mci.eventmanager.helper.ConstantList;
 
 public class GmailService {
 
@@ -20,8 +23,8 @@ public class GmailService {
 
 	public static List<Message> listMessagesMatchingQuery(String userId,
 			String query) throws IOException {
-		ListMessagesResponse response = service.users().messages().list(userId)
-				.setQ(query).execute();
+		
+		ListMessagesResponse response = service.users().messages().list(userId).setQ(query).execute();
 
 		List<Message> messages = new ArrayList<Message>();
 		while (response.getMessages() != null) {
@@ -87,80 +90,55 @@ public class GmailService {
 		return service.users().messages().attachments().get(userId, id, attId).execute();
 	}
 	
-	public static void main (String args[]) throws IOException {
-		String userId = "mimoun.chikhi@capgemini-sogeti.com";
-		List<Message> list = listMessagesMatchingQuery(userId, "in:inbox  is:unread");
-		
-//		Label label1 = createLabel(userId, "label1");
-//		List<String> listLabel1 = new ArrayList<String>();
-//		listLabel1.add(label1.getId());
-		
-
-//		Label label2 = createLabel(userId, "label2");
-//		List<String> listLabel2 = new ArrayList<String>();
-//		listLabel2.add(label2.getId());
-		
-//		for (Message message : list) {
-//			Message m = getMessageById(userId, message.getId());
-//		    ModifyMessageRequest mods = new ModifyMessageRequest().setAddLabelIds(listLabel);
-//		    m = service.users().messages().modify(userId, message.getId(), mods).execute();
-//			System.out.println(m.getId() +" - "+ m.toPrettyString());
-//		}
-		
-//		System.out.println();
-//		List<Thread> threads = listThreadsMatchingQuery(userId, "in:inbox  is:unread");
-//		
-//		for (Thread t : threads) {
-//			t = getThreadById(userId, t.getId());
-//			 List<Message> ts = t.getMessages();
-//			 int i=1;
-//			 System.out.println(ts.size());
-//			 for (Message message : ts) {
-//				    ModifyMessageRequest mods1 = new ModifyMessageRequest().setAddLabelIds(listLabel1);
-//				    ModifyMessageRequest mods2 = new ModifyMessageRequest().setAddLabelIds(listLabel2);
-//				    if (i==2) {
-//					    message = service.users().messages().modify(userId, message.getId(), mods1).execute();
-//				    }
-//				 System.out.println(message.getId()+" - "+ message.toPrettyString());
-//				 i++;
-//			}
-//		}
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		System.out.println();
-		
-		List<Message> messages = listMessagesMatchingQuery(userId, "in:inbox  is:unread -label:label1");
-		System.out.println(messages.size());
-		for (Message t : messages) {
-		    //ModifyMessageRequest mods1 = new ModifyMessageRequest().setAddLabelIds(listLabel1);
-
-		    //t = service.users().messages().modify(userId, t.getId(), mods1).execute();
-				 Message message = getMessageById(userId, t.getId());
-				 System.out.println(message.getId());
-				 System.out.println(message.getLabelIds());
+	public static boolean labelizeMessage(String userId, String messageId) throws IOException {
+		boolean isMessageLabelized = false;
+		List<String> labels = new ArrayList<String>();
+		Label label = getLabel(userId, ConstantList.LABEL);
+		if (label==null) {
+			System.err.println("Failed to create label "+ConstantList.LABEL);
+		} else {
+			labels.add(label.getId());
+		    ModifyMessageRequest mods1 = new ModifyMessageRequest().setAddLabelIds(labels);
+		    Message returnedMessage = service.users().messages().modify(userId, messageId, mods1).execute();
+		    List<String> list = returnedMessage.getLabelIds();
+		    isMessageLabelized = list.indexOf(label.getId())>-1;
 		}
-		
+		return isMessageLabelized;
 	}
-	
-	public static Message labelizeMessage(String userId, String messageId, List<String> labels) throws IOException {
-	    ModifyMessageRequest mods1 = new ModifyMessageRequest().setAddLabelIds(labels);
-	    return service.users().messages().modify(userId, messageId, mods1).execute();
+
+	public static boolean labelizeThread(String userId, String threadId) throws IOException {
+		boolean isThreadLabelized = false;
+		List<String> labels = new ArrayList<String>();
+		Label label = getLabel(userId, ConstantList.LABEL);
+		if (label==null) {
+			System.err.println("Failed to create label "+ConstantList.LABEL);
+		} else {
+			labels.add(label.getId());
+		    ModifyThreadRequest mods1 = new ModifyThreadRequest().setAddLabelIds(labels);
+		    service.users().threads().modify(userId, threadId, mods1).execute();
+		    isThreadLabelized = true;
+		}
+		return isThreadLabelized;
 	}
 		
-  private static Label createLabel( String userId, String newLabelName) throws IOException {
-	    Label label = new Label().setName(newLabelName).setMessageListVisibility("show").setLabelListVisibility("labelShow");
-	    label = service.users().labels().create(userId, label).execute();
-
-	    System.out.println("Label id: " + label.getId());
-	    System.out.println(label.toPrettyString());
-
-	    return label;
+	private static Label getLabel( String userId, String newLabelName) throws IOException {
+	  	Label returnedLabel = null;
+	    ListLabelsResponse response = service.users().labels().list(userId).execute();
+	    List<Label> labels = response.getLabels();
+	    boolean notFound = true;
+	    for (Label label : labels) {
+	    	if (label.getName().equals(ConstantList.LABEL)) {
+	    		notFound = false;
+	    		returnedLabel = label;
+	    		break;
+	    	}
+	    }
+	    if (notFound) {
+	    	returnedLabel = new Label().setName(newLabelName).setMessageListVisibility("show").setLabelListVisibility("labelShow");
+	    	returnedLabel = service.users().labels().create(userId, returnedLabel).execute();
+	    }
+	    return returnedLabel;
 	  }
 
-  private static void deleteLabel( String userId, String labelId) throws IOException{
-	    service.users().labels().delete(userId, labelId).execute();
-	    System.out.println("Label with id: " + labelId + " deleted successfully.");
-	  }	
 
 }
