@@ -5,6 +5,7 @@ public class Event {
 	private String recipient;
 	private String name;
 	private Long id;
+	private String idFolderRoot;
 	private String idFolderNew;
 	private String idFolderAttachment;
 	private String idFolderProgress;
@@ -51,6 +52,12 @@ public class Event {
 	}
 	public void setIdFolderClosed(String idFolderClosed) {
 		this.idFolderClosed = idFolderClosed;
+	}
+	public String getIdFolderRoot() {
+		return idFolderRoot;
+	}
+	public void setIdFolderRoot(String idFolderRoot) {
+		this.idFolderRoot = idFolderRoot;
 	}
 	
 	
