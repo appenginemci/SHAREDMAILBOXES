@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -52,11 +53,7 @@ public class CredentialLoader {
 			  
 			  GoogleCredential googleCredential = null;
 			  GoogleCredentialItem googleCredentialItem = null;
-			
-			  File fp12 = getP12File(CredentialLoader.class.getResourceAsStream("/" + domainCredentials.getCertificatePath()));
-			  //.setServiceAccountPrivateKeyFromP12File(new File(CredentialLoader.class.getResource("/" + domainCredentials.getCertificatePath()).toURI()))
-			     
-			  
+				  
 			  try {
 				googleCredential = new GoogleCredential.Builder()
 				      .setTransport(httpTransport)
@@ -64,7 +61,7 @@ public class CredentialLoader {
 				      .setServiceAccountId(domainCredentials.getServiceAccountEmail())
 				      .setServiceAccountScopes(scopes)
 				      .setServiceAccountUser(domainCredentials.getUserEmailAddress())		      
-				      .setServiceAccountPrivateKeyFromP12File(fp12)
+				      .setServiceAccountPrivateKeyFromP12File(new File(CredentialLoader.class.getResource("/"+domainCredentials.getCertificatePath()).toURI()))
 				      .build();
 				
 				googleCredentialItem = new GoogleCredentialItem();
@@ -76,29 +73,12 @@ public class CredentialLoader {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			
 			return googleCredentialItem;
-		}
-		
-		private static File getP12File(InputStream  is) {
-	        try {	             
-	            OutputStream os = new FileOutputStream(ConstantList.STRBASEFOLDER+"is.p12");
-	             
-	            byte[] buffer = new byte[1024];
-	            int bytesRead;
-	            //read from is to buffer
-	            while((bytesRead = is.read(buffer)) !=-1){
-	                os.write(buffer, 0, bytesRead);
-	            }
-	            is.close();
-	            //flush OutputStream to write any buffered data to file
-	            os.flush();
-	            os.close();
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-			return new File(ConstantList.STRBASEFOLDER+"is.p12");
 		}
 		
 		public static void a() {
