@@ -113,7 +113,6 @@ public class MultipleMailFormatService {
 		MailMessage asposeMessage = multipleFormatMail.getAsposeMessage();
 		MimeMessage mimeMessage = multipleFormatMail.getMimeMessage();
 		Message gMailMessage = multipleFormatMail.getGmailMessage();
-		
 		StringBuffer messageHeader = new StringBuffer();
 		messageHeader.append("<h1>1. Message Header</h1>");// TODO MCH iterate over To adresses
 		messageHeader.append("<br>From Email : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getAddress());
@@ -123,6 +122,8 @@ public class MultipleMailFormatService {
 		messageHeader.append("<br>Subject : ").append(mimeMessage.getSubject());
 		messageHeader.append("<br>Message Id : ").append(gMailMessage.getId());
 		messageHeader.append("<br>Thread Id : ").append(gMailMessage.getThreadId());
+		messageHeader.append("<br>Group Email : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getAddress());
+		messageHeader.append("<br>idRootFolder : ").append(multipleFormatMail.getEvent().getIdFolderRoot());
 		messageHeader.append("<br><br><br><br>");
 		
 		StringBuffer originalMail = new StringBuffer();
