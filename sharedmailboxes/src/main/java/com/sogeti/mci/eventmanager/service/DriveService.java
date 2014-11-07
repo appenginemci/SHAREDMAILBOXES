@@ -30,7 +30,7 @@ public class DriveService {
 
 		mciFolder = createFolder(multipleFormatEmail.getNameEmail(), mciFolder.getId());
 
-		return doInsertion(baos, name, description, mimetypeBody, mimetypeFile,
+		return doAttachementInsertion(baos, name, description, mimetypeBody, mimetypeFile,
 				extension, service, mciFolder);
 
 	}
@@ -56,6 +56,7 @@ public class DriveService {
 		return file;
 	}
 
+	@SuppressWarnings("unused")
 	private static File createRecipientFolder(Drive service)
 			throws IOException, GeneralSecurityException, URISyntaxException {
 
@@ -84,6 +85,32 @@ public class DriveService {
 	private static File doInsertion(ByteArrayOutputStream baos, String name,
 			String description, String mimetypeBody, String mimetypeFile,
 			String extension, Drive service, File mciFolder) throws IOException {
+		
+		File body = createGoogleFile(name, description, mimetypeBody, mciFolder);
+
+		ByteArrayContent mediaContent = new ByteArrayContent(mimetypeFile,baos.toByteArray());
+				
+		File file = copyFile(service, ConstantList.idTemplate,body);		
+		
+		file = updateFile(service, file.getId(),mediaContent);		
+		
+		return file;
+	}
+
+	private static File doAttachementInsertion(ByteArrayOutputStream baos, String name,
+			String description, String mimetypeBody, String mimetypeFile,
+			String extension, Drive service, File mciFolder) throws IOException {
+		File body = createGoogleFile(name, description, mimetypeBody, mciFolder);
+				
+		ByteArrayContent mediaContent = new ByteArrayContent(mimetypeFile,	baos.toByteArray());
+
+		File file = service.files().insert(body, mediaContent).execute();
+
+		return file;
+	}
+
+	private static File createGoogleFile(String name, String description,
+			String mimetypeBody, File mciFolder) {
 		// Insert a file
 		File body = new File();
 		body.setTitle(name);
@@ -94,13 +121,34 @@ public class DriveService {
 			body.setParents(Arrays.asList(new ParentReference().setId(mciFolder
 					.getId())));
 		}
+		return body;
+	}
 
-		ByteArrayContent mediaContent = new ByteArrayContent(mimetypeFile,
-				baos.toByteArray());
 
-		File file = service.files().insert(body, mediaContent).execute();
+	private static File copyFile(Drive service, String originFileId,
+			File copy) {
+		    try {
+		      return service.files().copy(originFileId, copy).execute();
+		    } catch (IOException e) {
+		      System.out.println("An error occurred: " + e);
+		    }
+		    return null;
+	 }
 
-		return file;
+
+	private static File updateFile(Drive service, String fileId, ByteArrayContent mediaContent) {
+		    try {
+		      // First retrieve the file from the API.
+		      File file = service.files().get(fileId).execute();
+		      
+		      // Send the request to the API.
+		      File updatedFile = service.files().update(fileId, file, mediaContent).execute();
+
+		      return updatedFile;
+		    } catch (IOException e) {
+		      System.out.println("An error occurred: " + e);
+		      return null;
+		    }
 	}
 
 	private static File getMCIFolder(String folderName,

@@ -12,6 +12,7 @@ public class ConstantList {
 	public static final String USER = "apps.engine@mci-group.com";
 	public static final String idAttachementFolderMCI="0B36Fx_FZ6maKYnItbHdPalE4djQ";
 	public static final String idFolderMCI="0B36Fx_FZ6maKUlVXUHpyNS14d2c";	
+	public static final String idTemplate = "1NUu3nIzWIEETo-0XHiYFzMU0BkLH0eHoYBTcBeMWlgQ";
 	
 //	public static final String USER = "mimoun.chikhi@capgemini-sogeti.com";
 //	public static final String idAttachementFolderMCI="0B1-jKG-UQQexd3NOaVFtaDhYYTQ"; 
