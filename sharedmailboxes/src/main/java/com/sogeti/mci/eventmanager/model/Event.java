@@ -10,6 +10,7 @@ public class Event {
 	private String idFolderAttachment;
 	private String idFolderProgress;
 	private String idFolderClosed;
+	private String idFolderTemporary;
 	
 	public String getRecipient() {
 		return recipient;
@@ -59,7 +60,12 @@ public class Event {
 	public void setIdFolderRoot(String idFolderRoot) {
 		this.idFolderRoot = idFolderRoot;
 	}
-	
+	public String getIdFolderTemporary() {
+		return idFolderTemporary;
+	}
+	public void setIdFolderTemporary(String idFolderTemporary) {
+		this.idFolderTemporary = idFolderTemporary;
+	}
 	
 
 }

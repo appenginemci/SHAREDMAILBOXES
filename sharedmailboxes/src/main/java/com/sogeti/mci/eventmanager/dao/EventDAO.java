@@ -15,6 +15,7 @@ public class EventDAO {
 		Event test = new Event();
 		test.setIdFolderAttachment(ConstantList.idAttachementFolderMCI);
 		test.setIdFolderNew(ConstantList.idFolderMCI);
+		test.setIdFolderTemporary(ConstantList.idTemplate);
 		test.setIdFolderRoot("Inconnu");
 		test.setRecipient("Recipient Name");
 		test.setId(1L);
@@ -28,7 +29,9 @@ public class EventDAO {
 		Event test = new Event();
 		test.setIdFolderAttachment(ConstantList.idAttachementFolderMCI);
 		test.setIdFolderNew(ConstantList.idFolderMCI);
+		test.setIdFolderTemporary(ConstantList.idTemplate);
 		test.setRecipient("Recipient Name");
+		test.setIdFolderRoot("Inconnu");
 		test.setName("Name");
 		test.setId(1L);
 		return test;

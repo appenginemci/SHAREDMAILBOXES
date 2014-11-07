@@ -110,20 +110,27 @@ public class MultipleMailFormatService {
 	}
 	
 	public static MultipleFormatMail constructOutput(MultipleFormatMail multipleFormatMail) throws MessagingException {		
+		MultipleFormatMail a = multipleFormatMail;
 		MailMessage asposeMessage = multipleFormatMail.getAsposeMessage();
 		MimeMessage mimeMessage = multipleFormatMail.getMimeMessage();
 		Message gMailMessage = multipleFormatMail.getGmailMessage();
 		StringBuffer messageHeader = new StringBuffer();
 		messageHeader.append("<h1>1. Message Header</h1>");// TODO MCH iterate over To adresses
-		messageHeader.append("<br>From Email : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getAddress());
-		messageHeader.append("<br>From  : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getPersonal());
-		messageHeader.append("<br>To : ").append(((InternetAddress)mimeMessage.getAllRecipients()[0]).getAddress()); 
+		messageHeader.append("<br>From : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getAddress());
+		//messageHeader.append("<br>From  : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getPersonal());
+		messageHeader.append("<br>To Event : ").append(((InternetAddress)mimeMessage.getAllRecipients()[0]).getAddress()); 
 		messageHeader.append("<br>Date : ").append(mimeMessage.getSentDate());
 		messageHeader.append("<br>Subject : ").append(mimeMessage.getSubject());
-		messageHeader.append("<br>Message Id : ").append(gMailMessage.getId());
 		messageHeader.append("<br>Thread Id : ").append(gMailMessage.getThreadId());
-		messageHeader.append("<br>Group Email : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getAddress());
-		messageHeader.append("<br>idRootFolder : ").append(multipleFormatMail.getEvent().getIdFolderRoot());
+		messageHeader.append("<br>Mail Id : ").append(gMailMessage.getId());
+		messageHeader.append("<br>Event Email Address : Event ").append(((InternetAddress)mimeMessage.getFrom()[0]).getAddress());
+		//messageHeader.append("<br>idRootFolder : ").append(multipleFormatMail.getEvent().getIdFolderRoot());
+		messageHeader.append("<br>Attachments Folder : ").append(multipleFormatMail.getEvent().getIdFolderAttachment());
+		messageHeader.append("<br>Temporary Folder : ").append(multipleFormatMail.getEvent().getIdFolderTemporary());
+		messageHeader.append("<br>Status : ");
+		messageHeader.append("<br>Reply by : ");
+		messageHeader.append("<br>Reply date : ");
+		
 		messageHeader.append("<br><br><br><br>");
 		
 		StringBuffer originalMail = new StringBuffer();
@@ -147,7 +154,7 @@ public class MultipleMailFormatService {
 		
 		multipleFormatMail.setAsposeMessage(asposeMessage);
 		
-		return multipleFormatMail;
+		return a;
 	}
 	
 	private static String getHeaderValue(List<MessagePartHeader> list, String name) {
