@@ -8,7 +8,10 @@ import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
@@ -118,12 +121,37 @@ public class MultipleMailFormatService {
 		messageHeader.append("<h1>1. Message Header</h1>");// TODO MCH iterate over To adresses
 		messageHeader.append("<br>From : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getAddress());
 		//messageHeader.append("<br>From  : ").append(((InternetAddress)mimeMessage.getFrom()[0]).getPersonal());
-		messageHeader.append("<br>To Event : ").append(((InternetAddress)mimeMessage.getAllRecipients()[0]).getAddress()); 
+		String stringTo = "";
+		Address[] addressesTo =  mimeMessage.getRecipients(javax.mail.Message.RecipientType.TO);
+		if (addressesTo != null && addressesTo.length > 0){
+			for (int i=0; i<addressesTo.length; i++){
+				InternetAddress tmpAddr = (InternetAddress)addressesTo[i];
+				if (stringTo != ""){
+					stringTo = stringTo +  ", " + tmpAddr.getAddress();
+				} else {
+					stringTo = tmpAddr.getAddress();
+				}
+			}
+		}
+		messageHeader.append("<br>To : " + stringTo);
+		String stringCc = "";
+		Address[] addressesCc =  mimeMessage.getRecipients(javax.mail.Message.RecipientType.CC);
+		if (addressesCc != null && addressesCc.length > 0){
+			for (int i=0; i<addressesCc.length; i++){
+				InternetAddress tmpAddr = (InternetAddress)addressesCc[i];
+				if (stringCc != ""){
+					stringCc = stringCc +  ", " + tmpAddr.getAddress();
+				} else {
+					stringCc = tmpAddr.getAddress();
+				}
+			}
+		}	
+		messageHeader.append("<br>Cc : " + stringCc);
 		messageHeader.append("<br>Date : ").append(mimeMessage.getSentDate());
 		messageHeader.append("<br>Subject : ").append(mimeMessage.getSubject());
 		messageHeader.append("<br>Thread Id : ").append(gMailMessage.getThreadId());
 		messageHeader.append("<br>Mail Id : ").append(gMailMessage.getId());
-		messageHeader.append("<br>Event Email Address : Event ").append(((InternetAddress)mimeMessage.getFrom()[0]).getAddress());
+		messageHeader.append("<br>Event Email Address : ").append("googleforwork-zurich2015-reg@g.mci-group.com");
 		//messageHeader.append("<br>idRootFolder : ").append(multipleFormatMail.getEvent().getIdFolderRoot());
 		messageHeader.append("<br>Attachments Folder : ").append(multipleFormatMail.getEvent().getIdFolderAttachment());
 		messageHeader.append("<br>Temporary Folder : ").append(multipleFormatMail.getEvent().getIdFolderTemporary());
@@ -144,11 +172,7 @@ public class MultipleMailFormatService {
 		
 		StringBuffer responses = new StringBuffer();
 		responses.append("<h1>4. Responses</h1>");
-		responses.append("<br><h2>4.1. answer in progress</h2>");
-		responses.append("<br>[From] : ").append(((InternetAddress)mimeMessage.getAllRecipients()[0]).getAddress()); 
-		responses.append("<br>[Subject] : ").append(mimeMessage.getSubject());
-		responses.append("<br>[Begin response]<br>");
-		responses.append("<br><br>[End response]");
+		responses.append("<br><h2>4.1. answer in progress</h2>").append("<br>");
 		
 		asposeMessage.setHtmlBody(messageHeader.append(originalMail).append(workingNotes).append(responses).toString());
 		
