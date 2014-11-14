@@ -4,7 +4,7 @@ public class ConstantList {
 
 	//public static final String STRBASEFOLDER = "D:\\Temp\\test\\";
 	public static final String STRBASEFOLDER = "";
-	
+	 
 
 	public static final String MCIFOLDER = "CH-Events";
 	

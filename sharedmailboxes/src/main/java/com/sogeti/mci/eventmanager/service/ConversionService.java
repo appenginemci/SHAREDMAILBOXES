@@ -1,7 +1,6 @@
 package com.sogeti.mci.eventmanager.service;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
@@ -37,13 +36,22 @@ public class ConversionService {
 		return finalFile;
 	}
 
-	private static File write(ByteArrayOutputStream baos, MultipleFormatMail multipleFormatMail)
-			throws FileNotFoundException, IOException,
-			GeneralSecurityException, URISyntaxException {
-		return DriveService.storeToDrive(baos, multipleFormatMail,
-				"An email converted to a document",
-				"application/vnd.google-apps.document", "application/msword",
-				"doc");
+	private static File write(ByteArrayOutputStream baos, MultipleFormatMail multipleFormatMail) {
+		File file = null;
+		try {
+			file = DriveService.storeToDrive(baos, multipleFormatMail,
+					"An email converted to a document",
+					"application/vnd.google-apps.document", "application/msword",
+					"doc");
+		} catch (IOException | GeneralSecurityException | URISyntaxException e) {
+			// TODO LOG IN DB
+			e.printStackTrace();
+		}
+		if (file!=null) {
+        	multipleFormatMail.getDocumentProperties().addAttachmentId(file.getId());
+        }
+    	multipleFormatMail.setExistInDrive(file!=null);		
+		return file;
 	}
 
 }

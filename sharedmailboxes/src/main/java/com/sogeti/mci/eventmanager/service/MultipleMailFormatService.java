@@ -1,6 +1,7 @@
 package com.sogeti.mci.eventmanager.service;
 
 import java.io.ByteArrayInputStream;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,9 +9,6 @@ import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -25,11 +23,13 @@ import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartBody;
 import com.google.api.services.gmail.model.MessagePartHeader;
+import com.sogeti.mci.eventmanager.dao.SettingsDAO;
 import com.sogeti.mci.eventmanager.helper.ConstantList;
+import com.sogeti.mci.eventmanager.model.DocumentProperties;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 
 public class MultipleMailFormatService {
-	
+	 
 	public static MultipleFormatMail create(String userId, Message message) throws MessagingException, IOException {
 		
 		Message m = GmailService.getMessageById(userId, message.getId());						
@@ -48,10 +48,10 @@ public class MultipleMailFormatService {
 	    String name = retrieveEmailName(mimeMessage);
 	    multipleFormatMail.setNameEmail(name);
 	    
-	    multipleFormatMail.setExistInDrive(DriveService.existsDocument(name, ConstantList.idFolderMCI));
-	    
 	    multipleFormatMail.setEvent(EventService.getEventByRecipient((mimeMessage.getAllRecipients())));
 	    	    
+	    multipleFormatMail.setDocumentProperties(new DocumentProperties());
+	    
 	    return multipleFormatMail;	    
 	}
 	
@@ -95,6 +95,10 @@ public class MultipleMailFormatService {
 				        		e.printStackTrace(); 
 				        	}
 					        File pj = DriveService.storeAttachmentToDrive(os, multipleFormatMail, filename, "attachment No"+part.getPartId(), part.getMimeType(), part.getMimeType(), "");
+					        if (pj!=null) {
+					        	multipleFormatMail.getDocumentProperties().addAttachmentId(pj.getId());
+					        }
+				        	multipleFormatMail.setExistInDrive(pj!=null);
 					        asposeMessage.setHtmlBody(asposeMessage.getHtmlBody()+"<br><a href=\""+pj.getAlternateLink()+"\">"+filename+"</a>");					        
 				    } else if ((getHeaderValue(part.getHeaders(),"Content-Disposition").startsWith("inline"))) {
 				    		LinkedResource res = new LinkedResource( new ByteArrayInputStream(byteArray), part.getMimeType());// MediaTypeNames.Image.JPEG				    	
@@ -126,7 +130,7 @@ public class MultipleMailFormatService {
 		if (addressesTo != null && addressesTo.length > 0){
 			for (int i=0; i<addressesTo.length; i++){
 				InternetAddress tmpAddr = (InternetAddress)addressesTo[i];
-				if (stringTo != ""){
+				if (!stringTo.equals("")){
 					stringTo = stringTo +  ", " + tmpAddr.getAddress();
 				} else {
 					stringTo = tmpAddr.getAddress();
@@ -139,7 +143,7 @@ public class MultipleMailFormatService {
 		if (addressesCc != null && addressesCc.length > 0){
 			for (int i=0; i<addressesCc.length; i++){
 				InternetAddress tmpAddr = (InternetAddress)addressesCc[i];
-				if (stringCc != ""){
+				if (!stringCc.equals("")){
 					stringCc = stringCc +  ", " + tmpAddr.getAddress();
 				} else {
 					stringCc = tmpAddr.getAddress();
@@ -151,10 +155,11 @@ public class MultipleMailFormatService {
 		messageHeader.append("<br>Subject : ").append(mimeMessage.getSubject());
 		messageHeader.append("<br>Thread Id : ").append(gMailMessage.getThreadId());
 		messageHeader.append("<br>Mail Id : ").append(gMailMessage.getId());
-		messageHeader.append("<br>Event Email Address : ").append("googleforwork-zurich2015-reg@g.mci-group.com");
+		//messageHeader.append("<br>Event Email Address : ").append("googleforwork-zurich2015-reg@g.mci-group.com");
+		messageHeader.append("<br>Event Email Address : ").append(multipleFormatMail.getEvent().getEmail());
 		//messageHeader.append("<br>idRootFolder : ").append(multipleFormatMail.getEvent().getIdFolderRoot());
-		messageHeader.append("<br>Attachments Folder : ").append(multipleFormatMail.getEvent().getIdFolderAttachment());
-		messageHeader.append("<br>Temporary Folder : ").append(multipleFormatMail.getEvent().getIdFolderTemporary());
+		//messageHeader.append("<br>Temporary Folder : ").append(getOutboxTempFolderId());
+		messageHeader.append("<br>Temporary Folder : ").append(SettingsDAO.getInstance().getSetting("outboxTempFolderId"));
 		messageHeader.append("<br>Status : ");
 		messageHeader.append("<br>Reply by : ");
 		messageHeader.append("<br>Reply date : ");

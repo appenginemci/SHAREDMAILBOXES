@@ -9,42 +9,52 @@ import com.google.api.services.gmail.model.Message;
 import com.sogeti.mci.eventmanager.helper.ConstantList;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 import com.sogeti.mci.eventmanager.service.ConversionService;
+import com.sogeti.mci.eventmanager.service.DriveService;
 import com.sogeti.mci.eventmanager.service.GmailService;
 import com.sogeti.mci.eventmanager.service.MultipleMailFormatService;
 
 public class MailManagerStream {
 	
 	public static void doJob() throws Exception {
-		
+
 		loadLicense();
-				
+
 		String userId = ConstantList.USER;
 
 		List<com.google.api.services.gmail.model.Thread> threads = GmailService.listThreadsMatchingQuery(userId, "in:inbox is:unread -label:"+ConstantList.LABEL);
-		
+
 		if (threads.size() == 0) {
 			System.err.println("No message in mailbox");
 		} else {
 			for (com.google.api.services.gmail.model.Thread thread : threads) {
-												
+
 				Message message = GmailService.getLastMessageFromThread(userId, thread);
-				
+
 				MultipleFormatMail multipleFormatMail = MultipleMailFormatService.create(userId, message);
-									
-				System.out.println("Converting message from Event : "+multipleFormatMail.getEvent().getRecipient());
-				System.out.println(multipleFormatMail.getNameEmail());
-			
-				multipleFormatMail = MultipleMailFormatService.constructMailWithAttachments(multipleFormatMail, userId);
-			    
-				multipleFormatMail = MultipleMailFormatService.constructOutput(multipleFormatMail);
-		    
-				File file = ConversionService.convertToDoc(multipleFormatMail);
+
+				if (multipleFormatMail.getEvent() != null) {
+					System.out.println("Converting message from Event : "+multipleFormatMail.getEvent().getEmail());
+					System.out.println(multipleFormatMail.getNameEmail());
 				
-				if (file!=null && !file.isEmpty()) {
-					if (!GmailService.labelizeThread(userId, message.getThreadId())) {
-						System.err.println("Failed to labelize message");
+					multipleFormatMail = MultipleMailFormatService.constructMailWithAttachments(multipleFormatMail, userId);
+				    
+					multipleFormatMail = MultipleMailFormatService.constructOutput(multipleFormatMail);
+			    
+					ConversionService.convertToDoc(multipleFormatMail);
+					
+					if (multipleFormatMail.isExistInDrive()) {
+						if (!GmailService.labelizeThread(userId, message.getThreadId())) {
+							System.err.println("Failed to labelize message");
+						}
+					} else {
+						if (!DriveService.deleteFiles(multipleFormatMail.getDocumentProperties())) {
+							System.err.println("Failed to delete corrupted files");
+							// TODO LOG IN DB
+						}
 					}
-				}
+				}else {
+					System.err.println("No event found for email: " +multipleFormatMail.getNameEmail());
+				} 
 			}
 		}
 

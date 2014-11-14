@@ -1,71 +1,65 @@
 package com.sogeti.mci.eventmanager.model;
 
 public class Event {
-	
-	private String recipient;
-	private String name;
 	private Long id;
-	private String idFolderRoot;
-	private String idFolderNew;
-	private String idFolderAttachment;
-	private String idFolderProgress;
-	private String idFolderClosed;
-	private String idFolderTemporary;
+	private String eventName;
+	private String googleGroupId;
+	private String folderId;
+	private String email;
+	private String inboxNewFolderId;
+	private String attachmentFolderId;
 	
-	public String getRecipient() {
-		return recipient;
-	}
-	public void setRecipient(String recipient) {
-		this.recipient = recipient;
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
 	public Long getId() {
 		return id;
 	}
 	public void setId(Long id) {
 		this.id = id;
 	}
-	public String getIdFolderNew() {
-		return idFolderNew;
+	public String getEventName() {
+		return eventName;
 	}
-	public void setIdFolderNew(String idFolderNew) {
-		this.idFolderNew = idFolderNew;
+	public void setEventName(String eventName) {
+		this.eventName = eventName;
 	}
-	public String getIdFolderAttachment() {
-		return idFolderAttachment;
+	public String getGoogleGroupId() {
+		return googleGroupId;
 	}
-	public void setIdFolderAttachment(String idFolderAttachment) {
-		this.idFolderAttachment = idFolderAttachment;
+	public void setGoogleGroupId(String googleGroupId) {
+		this.googleGroupId = googleGroupId;
 	}
-	public String getIdFolderProgress() {
-		return idFolderProgress;
+	public String getFolderId() {
+		return folderId;
 	}
-	public void setIdFolderProgress(String idFolderProgress) {
-		this.idFolderProgress = idFolderProgress;
+	public void setFolderId(String folderId) {
+		this.folderId = folderId;
 	}
-	public String getIdFolderClosed() {
-		return idFolderClosed;
+	public String getEmail() {
+		return email;
 	}
-	public void setIdFolderClosed(String idFolderClosed) {
-		this.idFolderClosed = idFolderClosed;
+	public void setEmail(String email) {
+		this.email = email;
 	}
-	public String getIdFolderRoot() {
-		return idFolderRoot;
+	public String getInboxNewFolderId() {
+		return inboxNewFolderId;
 	}
-	public void setIdFolderRoot(String idFolderRoot) {
-		this.idFolderRoot = idFolderRoot;
+	public void setInboxNewFolderId(String inboxNewFolderId) {
+		this.inboxNewFolderId = inboxNewFolderId;
 	}
-	public String getIdFolderTemporary() {
-		return idFolderTemporary;
+	public String getAttachmentFolderId() {
+		return attachmentFolderId;
 	}
-	public void setIdFolderTemporary(String idFolderTemporary) {
-		this.idFolderTemporary = idFolderTemporary;
+	public void setAttachmentFolderId(String attachmentFolderId) {
+		this.attachmentFolderId = attachmentFolderId;
 	}
-	
+	public String toString(){
+		String value = "id: " + id + "\n"
+					+ "eventName: " + eventName + "\n" 
+					+ "googleGroupId: " + googleGroupId + "\n"
+					+ "folderId: " + folderId + "\n"
+					+ "email: " + email + "\n"
+					+ "inboxNewFolderId: " + inboxNewFolderId + "\n"
+					+ "attachmentFolderId: " + attachmentFolderId;
+		return value;
+	}
 
 }

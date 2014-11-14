@@ -12,7 +12,9 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.google.api.services.drive.model.ParentReference;
 import com.sogeti.mci.eventmanager.authentication.CredentialLoader;
+import com.sogeti.mci.eventmanager.dao.SettingsDAO;
 import com.sogeti.mci.eventmanager.helper.ConstantList;
+import com.sogeti.mci.eventmanager.model.DocumentProperties;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 
 public class DriveService {
@@ -22,13 +24,18 @@ public class DriveService {
 	static File storeAttachmentToDrive(ByteArrayOutputStream baos,
 			MultipleFormatMail multipleFormatEmail, String name, String description,
 			String mimetypeBody, String mimetypeFile, String extension)
-			throws IOException, GeneralSecurityException, URISyntaxException {
+			 {
 		System.out.println("Storing attachment file " + name + " in folder "
 				+ multipleFormatEmail.getNameEmail());
 
-		File mciFolder = getRecipientFolderById(multipleFormatEmail.getEvent().getIdFolderAttachment());
+		File mciFolder = getRecipientFolderById(multipleFormatEmail.getEvent().getAttachmentFolderId());
 
-		mciFolder = createFolder(multipleFormatEmail.getNameEmail(), mciFolder.getId());
+		try {
+			mciFolder = createFolder(multipleFormatEmail.getNameEmail(), mciFolder.getId());
+		} catch (IOException | GeneralSecurityException | URISyntaxException e) {
+			// TODO LOG IN DB
+			e.printStackTrace();
+		} 
 
 		return doAttachementInsertion(baos, name, description, mimetypeBody, mimetypeFile,
 				extension, service, mciFolder);
@@ -43,7 +50,7 @@ public class DriveService {
 		Drive service = CredentialLoader.getDriveService();
 		// File mciFolder = createRecipientFolder(service);
 
-		File mciFolder = getRecipientFolderById(multipleFormatEmail.getEvent().getIdFolderNew());
+		File mciFolder = getRecipientFolderById(multipleFormatEmail.getEvent().getInboxNewFolderId());
 
 		return doInsertion(baos, multipleFormatEmail.getNameEmail(), description, mimetypeBody, mimetypeFile,
 				extension, service, mciFolder);
@@ -90,8 +97,8 @@ public class DriveService {
 
 		ByteArrayContent mediaContent = new ByteArrayContent(mimetypeFile,baos.toByteArray());
 				
-		File file = copyFile(service, ConstantList.idTemplate,body);		
-		
+		//File file = copyFile(service, ConstantList.idTemplate,body);		
+		File file = copyFile(service, SettingsDAO.getInstance().getSetting("templateDocId"),body);		
 		file = updateFile(service, file.getId(),mediaContent);		
 		
 		return file;
@@ -99,12 +106,18 @@ public class DriveService {
 
 	private static File doAttachementInsertion(ByteArrayOutputStream baos, String name,
 			String description, String mimetypeBody, String mimetypeFile,
-			String extension, Drive service, File mciFolder) throws IOException {
+			String extension, Drive service, File mciFolder)  {
 		File body = createGoogleFile(name, description, mimetypeBody, mciFolder);
 				
 		ByteArrayContent mediaContent = new ByteArrayContent(mimetypeFile,	baos.toByteArray());
 
-		File file = service.files().insert(body, mediaContent).execute();
+		File file = null;
+		try {
+			file = service.files().insert(body, mediaContent).execute();
+		} catch (IOException e) {
+			// TODO LOG IN DB
+			e.printStackTrace();
+		}
 
 		return file;
 	}
@@ -201,5 +214,30 @@ public class DriveService {
 		}
 
 		return toReturn;
+	}
+
+	public static boolean deleteFiles(DocumentProperties documentProperties) {
+		boolean deleteSuccess = true;
+		if (documentProperties.getdocumentId()!=null) {
+			deleteSuccess = deleteSuccess && deleteFile(documentProperties.getdocumentId());
+		}
+		if (documentProperties.getAttachmentIds()!=null) {
+			for (String id : documentProperties.getAttachmentIds()) {
+				deleteSuccess = deleteSuccess && deleteFile(id);
+			}
+		}
+		return deleteSuccess;
+	}
+	
+	private static boolean deleteFile(String id) {
+		boolean deleteOk = false;
+		try {
+			service.files().delete(id).execute();
+			deleteOk = true;
+		} catch (IOException e) {
+			// TODO LOG IN DB
+			e.printStackTrace();
+		}
+		return deleteOk;
 	}
 }

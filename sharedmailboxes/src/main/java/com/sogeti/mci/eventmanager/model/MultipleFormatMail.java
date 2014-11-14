@@ -12,8 +12,9 @@ public class MultipleFormatMail {
 	private MailMessage asposeMessage;
 	private Message gmailRawMessage;
 	private String nameEmail;
-	private boolean existInDrive;
+	private boolean existInDrive = true;
 	private Event event;
+	private DocumentProperties documentProperties;
 	
 	public MimeMessage getMimeMessage() {
 		return mimeMessage;
@@ -49,13 +50,19 @@ public class MultipleFormatMail {
 		return existInDrive;
 	}
 	public void setExistInDrive(boolean existInDrive) {
-		this.existInDrive = existInDrive;
+		this.existInDrive = this.existInDrive && existInDrive;
 	}
 	public Event getEvent() {
 		return event;
 	}
 	public void setEvent(Event event) {
 		this.event = event;
+	}
+	public DocumentProperties getDocumentProperties() {
+		return documentProperties;
+	}
+	public void setDocumentProperties(DocumentProperties documentProperties) {
+		this.documentProperties = documentProperties;
 	}	
 
 }
