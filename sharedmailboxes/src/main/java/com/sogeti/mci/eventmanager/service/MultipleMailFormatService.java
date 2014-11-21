@@ -160,9 +160,9 @@ public class MultipleMailFormatService {
 		//messageHeader.append("<br>idRootFolder : ").append(multipleFormatMail.getEvent().getIdFolderRoot());
 		//messageHeader.append("<br>Temporary Folder : ").append(getOutboxTempFolderId());
 		messageHeader.append("<br>Temporary Folder : ").append(SettingsDAO.getInstance().getSetting("outboxTempFolderId"));
-		messageHeader.append("<br>Status : ");
-		messageHeader.append("<br>Reply by : ");
-		messageHeader.append("<br>Reply date : ");
+		messageHeader.append("<div>Status : </div>");
+		messageHeader.append("<div>Reply by : </div>");
+		messageHeader.append("<div>Reply date : </div>");
 		
 		messageHeader.append("<br><br><br><br>");
 		
