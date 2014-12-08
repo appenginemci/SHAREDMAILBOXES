@@ -1,7 +1,6 @@
 package com.sogeti.mci.eventmanager.service;
 
 import com.sogeti.mci.eventmanager.dao.DocumentDAO;
-import com.sogeti.mci.eventmanager.dao.DriveDAO;
 import com.sogeti.mci.eventmanager.dao.ThreadDAO;
 import com.sogeti.mci.eventmanager.model.Document;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
@@ -15,11 +14,9 @@ public class DocumentService {
 		if (multipleFormatMail.isNewEmail()) {
 			toReturn = toReturn && ThreadDAO.insertThread(multipleFormatMail.getEvent().getId(), threadId);
 			if (toReturn) {
-				toReturn = toReturn && DocumentDAO.insertDocument(documentId, threadId);
+				toReturn = toReturn && DocumentDAO.insertDocument(documentId, threadId, multipleFormatMail.getNameEmail());
 			}
 		} else {
-			String oldDocumentId = DocumentDAO.getDocumentIdByThreadId(threadId);
-			toReturn = toReturn && DriveDAO.deleteFile(oldDocumentId);
 			toReturn = toReturn && DocumentDAO.updateDocument(documentId, threadId);
 		}
 		return toReturn;

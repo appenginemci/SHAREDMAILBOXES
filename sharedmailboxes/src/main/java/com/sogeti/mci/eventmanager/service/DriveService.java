@@ -50,24 +50,28 @@ public class DriveService {
 			URISyntaxException {
 		System.out.print("Storing file " + multipleFormatEmail.getNameEmail() + " in folder Id ");
 		Drive service = CredentialLoader.getDriveService();
-
-		String mciFolderId = null;
-		File mciFolder = null;	
+		
+		ByteArrayContent mediaContent = new ByteArrayContent(mimetypeFile,baos.toByteArray());
+		String folderId = null;
+		File destFolder = null;	
+		File body = null;
 		 
 		if (multipleFormatEmail.isNewEmail()) {
-			mciFolderId = multipleFormatEmail.getEvent().getInboxNewFolderId();
-			mciFolder = getRecipientFolderById(mciFolderId);			
+			folderId = multipleFormatEmail.getEvent().getInboxNewFolderId();
+			destFolder = getRecipientFolderById(folderId);
+			//Create a new empty file for receiving the copy 
+			body = createGoogleFile(multipleFormatEmail.getNameEmail(), description, mimetypeBody, destFolder);
+			//Copy the reply add-on on the targeted location
+			body = copyFile(service, SettingsDAO.getInstance().getSetting("templateDocId"),body);
 		} else {
-			mciFolderId = getParentFolderId(multipleFormatEmail.getDocument().getdocumentId());	
-			mciFolder = getRecipientFolderById(mciFolderId);
+			folderId = getParentFolderId(multipleFormatEmail.getDocument().getdocumentId());	
+			destFolder = getRecipientFolderById(folderId);
+			body = DriveDAO.getFile(multipleFormatEmail.getDocument().getdocumentId());
 		}
-		System.out.println(mciFolderId);
 
-		File body = createGoogleFile(multipleFormatEmail.getNameEmail(), description, mimetypeBody, mciFolder);
-
-		return doInsertion(baos,  mimetypeFile,
-				extension, service,  body);
-
+		System.out.println(" ("+folderId+")");
+		
+		return updateFile(service, body.getId(), mediaContent);	
 	}
 
 	private static File getRecipientFolderById(String idFolder) {
@@ -115,18 +119,6 @@ public class DriveService {
 			mciFolder = createMCIFolder(name, parentId);
 		}
 		return mciFolder;
-	}
-
-	private static File doInsertion(ByteArrayOutputStream baos, String mimetypeFile,
-			String extension, Drive service, File body) throws IOException {
-
-		ByteArrayContent mediaContent = new ByteArrayContent(mimetypeFile,baos.toByteArray());
-				
-		//File file = copyFile(service, ConstantList.idTemplate,body);		
-		File file = copyFile(service, SettingsDAO.getInstance().getSetting("templateDocId"),body);		
-		file = updateFile(service, file.getId(),mediaContent);		
-		
-		return file;
 	}
 
 	private static File doAttachementInsertion(ByteArrayOutputStream baos, String name,

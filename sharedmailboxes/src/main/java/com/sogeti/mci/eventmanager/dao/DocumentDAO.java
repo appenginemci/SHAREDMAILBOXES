@@ -11,7 +11,7 @@ public class DocumentDAO {
 	private static LoggerDAO logger = LoggerDAO.getInstance();
 
 	final static String GET_DOCID_BY_THRDID = "SELECT document_id FROM document WHERE thread_id=?";
-	final static String INSERT_DOCUMENT = "INSERT INTO document (document_id, thread_id, creation_date, modification_date) VALUES (?,?,?,?)";
+	final static String INSERT_DOCUMENT = "INSERT INTO document (document_id, thread_id, document_name, creation_date, modification_date) VALUES (?,?,?,?,?)";
 	final static String UPDATE_DOCUMENT = "UPDATE document SET document_id=?, modification_date=? WHERE thread_id=?";
 
 	public static String getDocumentIdByThreadId(String threadId) {
@@ -42,7 +42,7 @@ public class DocumentDAO {
 		return documentId;
 	}
 	
-	public static boolean insertDocument(String documentId, String threadId) {
+	public static boolean insertDocument(String documentId, String threadId, String documentName) {
 		int executionOK = 0;
 		
 		PreparedStatement stmt = null;
@@ -52,8 +52,9 @@ public class DocumentDAO {
 			stmt = conn.prepareStatement(INSERT_DOCUMENT);
 			stmt.setString(1, documentId);
 			stmt.setString(2, threadId);
-			stmt.setDate(3, new Date(new java.util.Date().getTime()));
+			stmt.setString(3, documentName);
 			stmt.setDate(4, new Date(new java.util.Date().getTime()));
+			stmt.setDate(5, new Date(new java.util.Date().getTime()));
 			executionOK = stmt.executeUpdate();
 			if (executionOK>0) {
 				logger.debug("inserted documentId and threadId");
