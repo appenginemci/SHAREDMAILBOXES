@@ -10,11 +10,13 @@ import com.google.api.client.http.ByteArrayContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import com.google.api.services.drive.model.ParentList;
 import com.google.api.services.drive.model.ParentReference;
 import com.sogeti.mci.eventmanager.authentication.CredentialLoader;
+import com.sogeti.mci.eventmanager.dao.DriveDAO;
 import com.sogeti.mci.eventmanager.dao.SettingsDAO;
 import com.sogeti.mci.eventmanager.helper.ConstantList;
-import com.sogeti.mci.eventmanager.model.DocumentProperties;
+import com.sogeti.mci.eventmanager.model.Document;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 
 public class DriveService {
@@ -46,14 +48,25 @@ public class DriveService {
 			String description, String mimetypeBody, String mimetypeFile,
 			String extension) throws IOException, GeneralSecurityException,
 			URISyntaxException {
-		System.out.println("Storing file " + multipleFormatEmail.getNameEmail() + " in folder new");
+		System.out.print("Storing file " + multipleFormatEmail.getNameEmail() + " in folder Id ");
 		Drive service = CredentialLoader.getDriveService();
-		// File mciFolder = createRecipientFolder(service);
 
-		File mciFolder = getRecipientFolderById(multipleFormatEmail.getEvent().getInboxNewFolderId());
+		String mciFolderId = null;
+		File mciFolder = null;	
+		 
+		if (multipleFormatEmail.isNewEmail()) {
+			mciFolderId = multipleFormatEmail.getEvent().getInboxNewFolderId();
+			mciFolder = getRecipientFolderById(mciFolderId);			
+		} else {
+			mciFolderId = getParentFolderId(multipleFormatEmail.getDocument().getdocumentId());	
+			mciFolder = getRecipientFolderById(mciFolderId);
+		}
+		System.out.println(mciFolderId);
 
-		return doInsertion(baos, multipleFormatEmail.getNameEmail(), description, mimetypeBody, mimetypeFile,
-				extension, service, mciFolder);
+		File body = createGoogleFile(multipleFormatEmail.getNameEmail(), description, mimetypeBody, mciFolder);
+
+		return doInsertion(baos,  mimetypeFile,
+				extension, service,  body);
 
 	}
 
@@ -61,6 +74,21 @@ public class DriveService {
 		File file = new File();
 		file.setId(idFolder);
 		return file;
+	}
+	
+	public static String getParentFolderId(String fileId) {
+		String folderId = null;
+	    try {
+	      ParentList parents = service.parents().list(fileId).execute();
+
+	      for (ParentReference parent : parents.getItems()) {
+	        //System.out.println("File Id: " + parent.getId());
+	        folderId = parent.getId();
+	      }
+	    } catch (IOException e) {
+	      System.out.println("An error occurred: " + e);
+	    }
+	    return folderId;
 	}
 
 	@SuppressWarnings("unused")
@@ -89,11 +117,8 @@ public class DriveService {
 		return mciFolder;
 	}
 
-	private static File doInsertion(ByteArrayOutputStream baos, String name,
-			String description, String mimetypeBody, String mimetypeFile,
-			String extension, Drive service, File mciFolder) throws IOException {
-		
-		File body = createGoogleFile(name, description, mimetypeBody, mciFolder);
+	private static File doInsertion(ByteArrayOutputStream baos, String mimetypeFile,
+			String extension, Drive service, File body) throws IOException {
 
 		ByteArrayContent mediaContent = new ByteArrayContent(mimetypeFile,baos.toByteArray());
 				
@@ -216,28 +241,17 @@ public class DriveService {
 		return toReturn;
 	}
 
-	public static boolean deleteFiles(DocumentProperties documentProperties) {
+	public static boolean deleteFiles(Document document) {
 		boolean deleteSuccess = true;
-		if (documentProperties.getdocumentId()!=null) {
-			deleteSuccess = deleteSuccess && deleteFile(documentProperties.getdocumentId());
+		if (document.getdocumentId()!=null) {
+			deleteSuccess = deleteSuccess && DriveDAO.deleteFile(document.getdocumentId());
 		}
-		if (documentProperties.getAttachmentIds()!=null) {
-			for (String id : documentProperties.getAttachmentIds()) {
-				deleteSuccess = deleteSuccess && deleteFile(id);
+		if (document.getAttachmentIds()!=null) {
+			for (String id : document.getAttachmentIds()) {
+				deleteSuccess = deleteSuccess && DriveDAO.deleteFile(id);
 			}
 		}
 		return deleteSuccess;
 	}
-	
-	private static boolean deleteFile(String id) {
-		boolean deleteOk = false;
-		try {
-			service.files().delete(id).execute();
-			deleteOk = true;
-		} catch (IOException e) {
-			// TODO LOG IN DB
-			e.printStackTrace();
-		}
-		return deleteOk;
-	}
+
 }

@@ -4,11 +4,11 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
-import com.google.api.services.drive.model.File;
 import com.google.api.services.gmail.model.Message;
 import com.sogeti.mci.eventmanager.helper.ConstantList;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 import com.sogeti.mci.eventmanager.service.ConversionService;
+import com.sogeti.mci.eventmanager.service.DocumentService;
 import com.sogeti.mci.eventmanager.service.DriveService;
 import com.sogeti.mci.eventmanager.service.GmailService;
 import com.sogeti.mci.eventmanager.service.MultipleMailFormatService;
@@ -42,12 +42,12 @@ public class MailManagerStream {
 			    
 					ConversionService.convertToDoc(multipleFormatMail);
 					
-					if (multipleFormatMail.isExistInDrive()) {
+					if (DocumentService.insertOrUpdateDocument(multipleFormatMail)) {
 						if (!GmailService.labelizeThread(userId, message.getThreadId())) {
 							System.err.println("Failed to labelize message");
 						}
 					} else {
-						if (!DriveService.deleteFiles(multipleFormatMail.getDocumentProperties())) {
+						if (!DriveService.deleteFiles(multipleFormatMail.getDocument())) {
 							System.err.println("Failed to delete corrupted files");
 							// TODO LOG IN DB
 						}

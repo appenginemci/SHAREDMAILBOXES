@@ -3,7 +3,7 @@ package com.sogeti.mci.eventmanager.model;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class DocumentProperties {
+public class Document {
 	
 	private String documentId;
 	private Collection<String> attachmentIds;

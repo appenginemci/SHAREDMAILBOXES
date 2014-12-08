@@ -31,6 +31,8 @@ public class ConversionService {
 		
 		if (finalFile==null || finalFile.isEmpty()) {
 			System.err.println("Failed to create final file : "+multipleFormatMail.getNameEmail());
+		} else {
+			multipleFormatMail.getDocument().setdocumentId(finalFile.getId());
 		}
 		
 		return finalFile;
@@ -46,11 +48,7 @@ public class ConversionService {
 		} catch (IOException | GeneralSecurityException | URISyntaxException e) {
 			// TODO LOG IN DB
 			e.printStackTrace();
-		}
-		if (file!=null) {
-        	multipleFormatMail.getDocumentProperties().addAttachmentId(file.getId());
-        }
-    	multipleFormatMail.setExistInDrive(file!=null);		
+		}	
 		return file;
 	}
 
