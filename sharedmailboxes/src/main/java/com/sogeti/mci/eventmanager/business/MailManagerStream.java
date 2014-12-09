@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.google.api.services.gmail.model.Message;
+import com.sogeti.mci.eventmanager.authentication.PropertiesManager;
 import com.sogeti.mci.eventmanager.helper.ConstantList;
 import com.sogeti.mci.eventmanager.model.MultipleFormatMail;
 import com.sogeti.mci.eventmanager.service.ConversionService;
@@ -19,7 +20,7 @@ public class MailManagerStream {
 
 		loadLicense();
 
-		String userId = ConstantList.USER;
+		String userId = PropertiesManager.getProperty("user.email");
 
 		List<com.google.api.services.gmail.model.Thread> threads = GmailService.listThreadsMatchingQuery(userId, "in:inbox is:unread -label:"+ConstantList.LABEL);
 
