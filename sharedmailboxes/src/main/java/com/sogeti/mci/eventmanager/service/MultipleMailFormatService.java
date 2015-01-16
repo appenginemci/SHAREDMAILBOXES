@@ -31,11 +31,9 @@ public class MultipleMailFormatService {
 	 
 	public static MultipleFormatMail create(String userId, Message message) throws MessagingException, IOException {
 		
-		Message m = GmailService.getMessageById(userId, message.getId());						
+		Message gmailMessage = GmailService.getMessageById(userId, message.getId());
 		
-		Message gmailMessage = GmailService.getMessageById(userId, m.getId());
-		
-		MimeMessage mimeMessage = getMimeMessage(userId, m.getId());
+		MimeMessage mimeMessage = getMimeMessage(userId, message.getId());
 	    InputStream isMessage = mimeMessage.getInputStream();
 	    MailMessage asposeMessage = MailMessage.load(isMessage);
 	    

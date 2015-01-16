@@ -170,10 +170,12 @@ public class DriveService {
 		    try {
 		      // First retrieve the file from the API.
 		      File file = service.files().get(fileId).execute();
+		      file.getLabels().setViewed(false);
 		      
 		      // Send the request to the API.
 		      File updatedFile = service.files().update(fileId, file, mediaContent).execute();
-
+		      
+		      
 		      return updatedFile;
 		    } catch (IOException e) {
 		      System.out.println("An error occurred: " + e);
